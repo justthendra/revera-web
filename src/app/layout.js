@@ -2,8 +2,21 @@ import './globals.css';
 import Providers from '@/components/Providers';
 import LayoutShell from '@/components/LayoutShell';
 
+function getSafeBaseUrl() {
+  const raw = process.env.NEXTAUTH_URL || (process.env.VERCEL_URL ? 'https://' + (process.env.VERCEL_URL || 'revera-web.vercel.app') : 'https://revera-web.vercel.app');
+  try {
+    let clean = String(raw).trim();
+    if (clean.startsWith('https//')) clean = 'https://' + clean.slice(7);
+    else if (clean.startsWith('http//')) clean = 'http://' + clean.slice(6);
+    else if (!clean.startsWith('http://') && !clean.startsWith('https://')) clean = 'https://' + clean;
+    return new URL(clean);
+  } catch {
+    return new URL('https://revera-web.vercel.app');
+  }
+}
+
 export const metadata = {
-  metadataBase: new URL(process.env.NEXTAUTH_URL || 'http://localhost:3000'),
+  metadataBase: getSafeBaseUrl(),
   title: {
     default: 'Revera | Next-Gen Discord Music Bot & Studio',
     template: '%s | Revera',
