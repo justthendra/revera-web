@@ -1,0 +1,126 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+:root {
+  --background: #08060d;
+  --foreground: #f8fafc;
+  --dux-card: #120d1c;
+  --dux-card-border: rgba(255, 42, 157, 0.12);
+  --primary-pink: #ff2a9d;
+  --secondary-purple: #a855f7;
+  --accent-cyan: #06b6d4;
+  --accent-amber: #f59e0b;
+}
+
+html, body, button, input, select, textarea {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  letter-spacing: -0.01em;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+code, kbd, samp, pre, .font-mono {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+}
+
+/* Subtle Dux/Tebex Cyber Grid Background */
+.bg-dux-grid {
+  background-size: 44px 44px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+}
+
+/* Dux Floating Glows */
+.dux-radial-glow {
+  background: radial-gradient(circle at 50% 0%, rgba(255, 42, 157, 0.16) 0%, rgba(168, 85, 247, 0.08) 35%, transparent 70%);
+}
+
+/* Text Gradients */
+.text-dux-pink {
+  background: linear-gradient(135deg, #ff2a9d 0%, #ec4899 50%, #c084fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-dux-cyan {
+  background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 50%, #a855f7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Dux Glass Cards with Corner Highlights */
+.dux-card {
+  background: rgba(18, 13, 28, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 20px;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dux-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 42, 157, 0.35);
+  box-shadow: 0 20px 40px -15px rgba(255, 42, 157, 0.2);
+}
+
+/* Dux High-Conversion Buttons */
+.btn-dux-primary {
+  background: linear-gradient(135deg, #ff2a9d 0%, #d946ef 50%, #9333ea 100%);
+  box-shadow: 0 4px 24px rgba(255, 42, 157, 0.35);
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-dux-primary:hover {
+  box-shadow: 0 6px 32px rgba(255, 42, 157, 0.55);
+  filter: brightness(1.1);
+}
+
+/* Infinite Seamless Marquee Animation for Live Stream / Recent Events Feed */
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(calc(-100% - 1.5rem));
+  }
+}
+
+.animate-marquee {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 1.5rem;
+  animation: marquee 35s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Smooth Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #08060d;
+}
+::-webkit-scrollbar-thumb {
+  background: #251638;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #ff2a9d;
+}

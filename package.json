@@ -1,0 +1,42 @@
+{
+  "name": "revera-web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).",
+  "keywords": [
+    "Revera"
+  ],
+  "homepage": "https://github.com/justthendra/revera-web#readme",
+  "bugs": {
+    "url": "https://github.com/justthendra/revera-web/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/justthendra/revera-web.git"
+  },
+  "license": "MIT",
+  "author": "Thendra",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "mongoose": "^9.11.4",
+    "next": "16.4.3",
+    "next-auth": "^4.24.15",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-icons": "^5.7.0",
+    "youtubei.js": "^18.3.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/turbopack": "^4",
+    "eslint": "^9",
+    "eslint-config-next": "16.4.3",
+    "tailwindcss": "^4"
+  }
+}
