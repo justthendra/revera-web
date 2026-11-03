@@ -16,8 +16,7 @@
   },
   "license": "MIT",
   "author": "Thendra",
-  "type": "commonjs",
-  "main": "index.js",
+  "type": "moudle",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
