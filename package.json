@@ -16,7 +16,7 @@
   },
   "license": "MIT",
   "author": "Thendra",
-  "type": "moudle",
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
