@@ -23,7 +23,13 @@ import {
   FaBell,
   FaClock,
   FaVoteYea,
-  FaCopy
+  FaCopy,
+  FaFolderOpen,
+  FaExternalLinkAlt,
+  FaChevronDown,
+  FaChevronUp,
+  FaTimes,
+  FaListUl
 } from 'react-icons/fa';
 import { RiEqualizerFill, RiDiscFill } from 'react-icons/ri';
 import { MdAudiotrack } from 'react-icons/md';
@@ -67,6 +73,13 @@ function GuildDashboardInner() {
   const [streamInput, setStreamInput] = useState('');
   const [sendingCmd, setSendingCmd] = useState(false);
 
+  // Server Custom Playlists in Live Controller
+  const [serverPlaylists, setServerPlaylists] = useState([]);
+  const [loadingPlaylists, setLoadingPlaylists] = useState(false);
+  const [playlistsDrawerOpen, setPlaylistsDrawerOpen] = useState(true);
+  const [selectedPlaylistPreview, setSelectedPlaylistPreview] = useState(null);
+  const [playlistNotice, setPlaylistNotice] = useState(null);
+
   // Server Settings State
   const [settings, setSettings] = useState({
     guildId,
@@ -86,6 +99,7 @@ function GuildDashboardInner() {
     if (guildId) {
       fetchGuildConfig();
       fetchLivePlayer();
+      fetchServerPlaylists();
       const interval = setInterval(fetchLivePlayer, 3000);
       return () => clearInterval(interval);
     }
@@ -174,6 +188,46 @@ function GuildDashboardInner() {
     if (!streamInput.trim()) return;
     sendRemoteAction('play', { query: streamInput.trim() });
     setStreamInput('');
+  }
+
+  // Fetch Server-Specific Playlists
+  async function fetchServerPlaylists() {
+    if (!guildId) return;
+    setLoadingPlaylists(true);
+    try {
+      const res = await fetch(`/api/playlists?guildId=${guildId}`);
+      const data = await res.json();
+      if (data.success && data.playlists) {
+        setServerPlaylists(data.playlists);
+      }
+    } catch (err) {
+      console.error('Failed to fetch server playlists:', err);
+    } finally {
+      setLoadingPlaylists(false);
+    }
+  }
+
+  // Play an entire Server Playlist in Voice
+  async function handlePlayServerPlaylist(pl) {
+    if (!pl || !pl.tracks?.length) return;
+    const initialTrack = pl.tracks[0];
+    const query = initialTrack?.url || `${initialTrack?.title} ${initialTrack?.author}`;
+    sendRemoteAction('playPlaylist', {
+      playlistId: pl.playlistId || pl._id,
+      name: pl.name,
+      query
+    });
+    setPlaylistNotice(`Streaming "${pl.name}" (${pl.tracks.length} tracks) to voice channel...`);
+    setTimeout(() => setPlaylistNotice(null), 4500);
+  }
+
+  // Play a single selected track from playlist inspection
+  function handlePlayTrackFromPlaylist(track, plName) {
+    if (!track) return;
+    const query = track.url || `${track.title} ${track.author}`;
+    sendRemoteAction('play', { query });
+    setPlaylistNotice(`Playing "${track.title}" from "${plName}"...`);
+    setTimeout(() => setPlaylistNotice(null), 4000);
   }
 
   async function persistSettings(nextSettings) {
@@ -525,6 +579,147 @@ function GuildDashboardInner() {
                   {liveVolume}%
                 </span>
               </div>
+            </div>
+
+            {/* ========================================================= */}
+            {/* SERVER CUSTOM PLAYLISTS DRAWER / QUICK LAUNCHER           */}
+            {/* ========================================================= */}
+            <div className="mt-5 pt-5 border-t border-white/[0.08]">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-3">
+                <button
+                  type="button"
+                  onClick={() => setPlaylistsDrawerOpen(!playlistsDrawerOpen)}
+                  className="flex items-center gap-2.5 text-xs font-black text-white hover:text-pink-400 transition-colors cursor-pointer group"
+                >
+                  <div className="w-6 h-6 rounded-lg bg-pink-500/20 text-pink-400 flex items-center justify-center text-[11px] group-hover:bg-pink-500 group-hover:text-white transition-all">
+                    <FaFolderOpen />
+                  </div>
+                  <span>Server Playlists</span>
+                  <span className="px-2 py-0.5 rounded-full bg-white/10 text-gray-300 text-[10px] font-mono">
+                    {serverPlaylists.length}
+                  </span>
+                  {playlistsDrawerOpen ? (
+                    <FaChevronUp className="text-[10px] text-gray-400" />
+                  ) : (
+                    <FaChevronDown className="text-[10px] text-gray-400" />
+                  )}
+                </button>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={fetchServerPlaylists}
+                    disabled={loadingPlaylists}
+                    className="text-[11px] text-gray-400 hover:text-white transition-colors cursor-pointer disabled:opacity-50"
+                    title="Refresh server playlists"
+                  >
+                    Refresh
+                  </button>
+                  <span className="text-gray-600 text-xs">•</span>
+                  <Link
+                    href={`/dashboard/playlists?guildId=${guildId}`}
+                    className="text-[11px] font-bold text-pink-400 hover:text-pink-300 flex items-center gap-1.5 transition-colors"
+                  >
+                    <span>Manage / Import Playlists</span>
+                    <FaExternalLinkAlt className="text-[9px]" />
+                  </Link>
+                </div>
+              </div>
+
+              {playlistNotice && (
+                <div className="mb-3.5 p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-bold flex items-center gap-2.5 animate-fade-in shadow-lg">
+                  <FaCheck className="text-emerald-400 shrink-0" />
+                  <span>{playlistNotice}</span>
+                </div>
+              )}
+
+              {playlistsDrawerOpen && (
+                <div className="animate-fade-in">
+                  {loadingPlaylists ? (
+                    <div className="py-8 text-center text-gray-400 text-xs">
+                      <div className="w-5 h-5 border-2 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                      Loading server playlists...
+                    </div>
+                  ) : serverPlaylists.length === 0 ? (
+                    <div className="p-5 rounded-2xl bg-[#141221] border border-dashed border-white/10 text-center">
+                      <p className="text-xs text-gray-400 mb-2.5">
+                        No custom playlists saved for this server yet.
+                      </p>
+                      <Link
+                        href={`/dashboard/playlists?guildId=${guildId}`}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-pink-500/20 to-purple-600/20 hover:from-pink-500/30 hover:to-purple-600/30 text-pink-300 border border-pink-500/30 text-xs font-bold transition-all shadow-md"
+                      >
+                        <FaFolderOpen className="text-xs" />
+                        Create or Import Playlist
+                      </Link>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                      {serverPlaylists.map((pl) => {
+                        const trackCount = pl.tracks?.length || 0;
+                        const cover = pl.tracks?.[0]?.thumbnail;
+                        return (
+                          <div
+                            key={pl.playlistId || pl._id}
+                            className="p-3.5 rounded-2xl bg-[#191428] hover:bg-[#1e1932] border border-white/[0.08] hover:border-pink-500/40 transition-all flex flex-col justify-between gap-3 group shadow-md"
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-black/40 border border-white/10 shrink-0 flex items-center justify-center text-pink-400 shadow-md">
+                                {cover ? (
+                                  <img
+                                    src={cover}
+                                    alt=""
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                  />
+                                ) : (
+                                  <RiDiscFill className="text-2xl" />
+                                )}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <h4 className="text-xs font-black text-white truncate group-hover:text-pink-300 transition-colors">
+                                  {pl.name}
+                                </h4>
+                                <div className="flex items-center gap-1.5 text-[10px] text-gray-400 mt-0.5">
+                                  <span className="text-purple-400 font-bold font-mono">
+                                    {trackCount} Tracks
+                                  </span>
+                                  {pl.plays > 0 && (
+                                    <>
+                                      <span>•</span>
+                                      <span>{pl.plays} plays</span>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 pt-2 border-t border-white/[0.06]">
+                              <button
+                                type="button"
+                                onClick={() => handlePlayServerPlaylist(pl)}
+                                disabled={trackCount === 0 || sendingCmd}
+                                className="flex-1 py-1.5 px-3 rounded-lg bg-gradient-to-r from-pink-500 to-purple-600 hover:brightness-110 text-white font-extrabold text-[11px] flex items-center justify-center gap-1.5 shadow-md shadow-pink-500/20 transition-all disabled:opacity-40 cursor-pointer"
+                              >
+                                <FaPlay className="text-[9px]" />
+                                <span>Play in Voice</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => setSelectedPlaylistPreview(pl)}
+                                className="p-1.5 px-2.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-gray-300 hover:text-white text-[11px] font-bold border border-white/10 transition-colors cursor-pointer"
+                                title="Inspect Track List"
+                              >
+                                <FaListUl className="text-[10px]" />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -1011,6 +1206,116 @@ function GuildDashboardInner() {
               </div>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* PLAYLIST TRACKS PREVIEW MODAL                             */}
+      {/* ========================================================= */}
+      {selectedPlaylistPreview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div className="relative w-full max-w-lg rounded-3xl bg-[#141221] border border-white/15 p-6 shadow-2xl flex flex-col max-h-[85vh]">
+            {/* Modal Header */}
+            <div className="flex items-start justify-between gap-4 pb-4 border-b border-white/10">
+              <div className="flex items-center gap-3.5 min-w-0">
+                <div className="w-12 h-12 rounded-xl overflow-hidden bg-black/40 border border-white/10 shrink-0 flex items-center justify-center text-pink-400">
+                  {selectedPlaylistPreview.tracks?.[0]?.thumbnail ? (
+                    <img
+                      src={selectedPlaylistPreview.tracks[0].thumbnail}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <RiDiscFill className="text-2xl" />
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-base font-black text-white truncate">
+                    {selectedPlaylistPreview.name}
+                  </h3>
+                  <p className="text-xs text-gray-400">
+                    {selectedPlaylistPreview.tracks?.length || 0} Tracks • Server Playlist
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setSelectedPlaylistPreview(null)}
+                className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 text-gray-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <FaTimes className="text-xs" />
+              </button>
+            </div>
+
+            {/* Modal Track List */}
+            <div className="flex-1 overflow-y-auto py-3 space-y-1.5 pr-1">
+              {!selectedPlaylistPreview.tracks || selectedPlaylistPreview.tracks.length === 0 ? (
+                <p className="text-xs text-gray-500 text-center py-8">This playlist is empty.</p>
+              ) : (
+                selectedPlaylistPreview.tracks.map((track, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.04] transition-colors group"
+                  >
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <span className="text-[11px] font-mono text-gray-500 w-5 text-right shrink-0">
+                        {idx + 1}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-bold text-white truncate group-hover:text-pink-300 transition-colors">
+                          {track.title}
+                        </p>
+                        <p className="text-[10px] text-gray-400 truncate">
+                          {track.author}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-[10px] font-mono text-gray-500">
+                        {track.duration || '00:00'}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handlePlayTrackFromPlaylist(track, selectedPlaylistPreview.name)
+                        }
+                        className="p-2 rounded-lg bg-pink-500/10 hover:bg-pink-500/30 text-pink-300 text-xs transition-colors cursor-pointer"
+                        title="Stream this track to voice"
+                      >
+                        <FaPlay className="text-[9px]" />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Modal Footer Actions */}
+            <div className="pt-4 border-t border-white/10 flex items-center justify-between gap-3">
+              <Link
+                href={`/dashboard/playlists?guildId=${guildId}`}
+                className="text-xs font-bold text-gray-400 hover:text-white flex items-center gap-1.5 transition-colors"
+              >
+                <span>Edit in Studio</span>
+                <FaExternalLinkAlt className="text-[10px] text-pink-400" />
+              </Link>
+
+              <button
+                type="button"
+                onClick={() => {
+                  handlePlayServerPlaylist(selectedPlaylistPreview);
+                  setSelectedPlaylistPreview(null);
+                }}
+                disabled={!selectedPlaylistPreview.tracks?.length || sendingCmd}
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 hover:brightness-110 text-white font-black text-xs flex items-center gap-2 shadow-lg shadow-pink-500/25 transition-all cursor-pointer disabled:opacity-50"
+              >
+                <FaPlay className="text-[10px]" />
+                <span>Play Entire Playlist</span>
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </DashboardShell>

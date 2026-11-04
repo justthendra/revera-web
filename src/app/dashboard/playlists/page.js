@@ -62,9 +62,11 @@ export default function PlaylistsDashboardPage() {
         const data = await res.json();
         if (data.success && data.guilds?.length) {
           setGuilds(data.guilds);
-          const savedId = localStorage.getItem('revera_last_guild_id');
+          const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+          const queryGuildId = urlParams ? urlParams.get('guildId') : null;
+          const savedId = queryGuildId || localStorage.getItem('revera_last_guild_id');
           const matched = data.guilds.find((g) => g.id === savedId);
-          setSelectedGuildId(matched ? matched.id : data.guilds[0].id);
+          setSelectedGuildId(matched ? matched.id : (queryGuildId || data.guilds[0].id));
         }
       } catch (err) {
         console.error('Error fetching user guilds:', err);
