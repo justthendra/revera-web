@@ -221,13 +221,18 @@ function GuildDashboardInner() {
     setTimeout(() => setPlaylistNotice(null), 4500);
   }
 
-  // Play a single selected track from playlist inspection
+  // Play a single selected track immediately from playlist inspection
   function handlePlayTrackFromPlaylist(track, plName) {
     if (!track) return;
     const query = track.url || `${track.title} ${track.author}`;
-    sendRemoteAction('play', { query });
-    setPlaylistNotice(`Playing "${track.title}" from "${plName}"...`);
-    setTimeout(() => setPlaylistNotice(null), 4000);
+    sendRemoteAction('playNow', {
+      query,
+      playNow: true,
+      title: track.title,
+      author: track.author
+    });
+    setPlaylistNotice(`Switching playback to "${track.title}" from "${plName}"...`);
+    setTimeout(() => setPlaylistNotice(null), 4500);
   }
 
   async function persistSettings(nextSettings) {
