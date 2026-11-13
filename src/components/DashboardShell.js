@@ -40,7 +40,7 @@ export default function DashboardShell({
   const [lastGuildId, setLastGuildId] = useState(null);
 
   const clientId = process.env.NEXT_PUBLIC_CLIENT_ID || '123456789';
-  const inviteUrl = `https://discord.com/oauth2/authorize?client_id=${clientId}&permissions=8&scope=bot%20applications.commands`;
+  const inviteUrl = `https://discord.com/oauth2/authorize?client_id=${clientId}&permissions=37047360&scope=bot%20applications.commands`;
 
   useEffect(() => {
     if (activeGuild?.id) {
